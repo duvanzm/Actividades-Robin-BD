@@ -32,15 +32,19 @@ db.getConnection((err, connection) => {
   connection.release();
 });
 
-
-
-
 app.get('/',(req, res)=>{
 
-    res.send('hello mi friends')
+    res.send('Hello my friends: usa /level#/ejercicio# para ver los resultados de las consultas SQL ejemplo: /level1/ejercicio-1')
 })
 
-app.get('/data', (req, res) => {
+// Actividad 3: Consulta SQL con Express y MySQL
+// Enpoint Ejecrcicios:
+const urlEjer= 'ejercicio-'
+const urllev = 'level'
+// 1. Listar el nombre de un usuario (el que tu quieras), 
+// su correo electrónico y el código (`order_number`) de todos los pedidos que han realizado.
+
+app.get(`/${urllev}1/${urlEjer}1`, (req, res) => {
   const query = "SELECT u.name,u.last_name,u.email,o.order_number FROM users u INNER JOIN orders o ON u.id = o.user_id WHERE u.id  = '1'";
 
   db.query(query, (err, results) => {
@@ -48,9 +52,24 @@ app.get('/data', (req, res) => {
       console.error('Error al ejecutar la consulta:', err);
       return res.status(500).send('Error en el servidor');
     }
-    console.log(res.json(results)); // Devuelve los datos en formato JSON
+    console.log(res.json(results)); 
   });
 });   
+
+//2. Obtener todos los pedidos (código y fecha) realizados por un usuario con un correo electrónico específico (ej: isamel@pedrito.es).
+
+app.get(`/${urllev}1/${urlEjer}2`, (req, res) => {
+  const query = "SELECT o.order_number,o.created_at FROM orders o INNER JOIN users u ON o.user_id = u.id WHERE u.email = 'isamel@pedrito.es'";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error al ejecutar la consulta:', err);
+      return res.status(500).send('Error en el servidor');
+    }
+    console.log(res.json(results)); 
+  });
+});  
+
 
 const PORT = process.env.PORT || 3000;
 
