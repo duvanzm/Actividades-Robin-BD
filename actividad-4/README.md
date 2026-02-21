@@ -15,7 +15,7 @@ city
 country
 Calcule la edad a partir del campo birth_date.
 Incluya únicamente usuarios cuya edad sea mayor o igual a 18 años.
-Ejercicio 2 – Vista de contactos consolidados
+- Ejercicio 2 – Vista de contactos consolidados
 Crea una vista llamada view_user_contacts que:
 
 Genere un campo full_name concatenando first_name y last_name.

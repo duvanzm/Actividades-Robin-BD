@@ -101,3 +101,24 @@ COALESCE	Teléfono
 WHERE	Filtros
 ORDER BY	Ordenamiento
 GROUP BY	Agrupación
+
+
+
+
+
+Ejercicio 1 – Vista de usuarios mayores de edad
+Crea una vista llamada view_adult_users que cumpla con lo siguiente:
+
+Muestre los campos:
+id
+first_name
+last_name
+document_type
+document_number
+city
+country
+Calcule la edad a partir del campo birth_date.
+Incluya únicamente usuarios cuya edad sea mayor o igual a 18 años.
+
+CREATE VIEW view_adult_users AS 
+SELECT id, first_name
