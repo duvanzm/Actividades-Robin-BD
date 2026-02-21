@@ -1,0 +1,103 @@
+Ejercicio 1 – Vista de usuarios mayores de edad
+
+ Usamos TIMESTAMPDIFF para calcular edad.
+
+CREATE VIEW view_adult_users AS
+SELECT 
+    id,
+    first_name,
+    last_name,
+    document_type,
+    document_number,
+    city,
+    country,
+    TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) AS age
+FROM users
+WHERE TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) >= 18;
+
+Para consultar:
+
+SELECT * FROM view_adult_users;
+Ejercicio 2 – Vista de contactos consolidados
+
+ Usamos CONCAT y COALESCE.
+
+CREATE VIEW view_user_contacts AS
+SELECT
+    CONCAT(first_name, ' ', last_name) AS full_name,
+    email,
+    COALESCE(mobile, phone, 'Sin teléfono') AS contact_number,
+    address,
+    city,
+    state,
+    country
+FROM users;
+
+Consultar:
+
+SELECT * FROM view_user_contacts;
+Ejercicio 3 – Vista financiera
+CREATE VIEW view_users_with_income AS
+SELECT
+    id,
+    first_name,
+    last_name,
+    profession,
+    monthly_income
+FROM users
+WHERE monthly_income IS NOT NULL
+AND monthly_income > 0;
+
+Consulta ordenada:
+
+SELECT *
+FROM view_users_with_income
+ORDER BY monthly_income DESC;
+Ejercicio 4 – Vista demográfica
+Crear vista:
+CREATE VIEW view_demographic_summary AS
+SELECT
+    CONCAT(first_name, ' ', last_name) AS full_name,
+    TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) AS age,
+    gender,
+    marital_status,
+    education_level,
+    city,
+    country
+FROM users;
+Consulta agrupada por ciudad:
+SELECT 
+    city,
+    COUNT(*) AS total_users
+FROM view_demographic_summary
+GROUP BY city;
+Ejercicio 5 – Vista de perfil ejecutivo
+Crear vista:
+CREATE VIEW view_user_profile AS
+SELECT
+    CONCAT(first_name, ' ', last_name) AS full_name,
+    document_type,
+    document_number,
+    TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) AS age,
+    profession,
+    education_level,
+    company,
+    monthly_income,
+    city,
+    country
+FROM users;
+Consulta solicitada:
+SELECT *
+FROM view_user_profile
+WHERE monthly_income > 3000000
+ORDER BY city;
+
+Conceptos aplicados
+Concepto	Dónde se usó
+CREATE VIEW	En todos
+TIMESTAMPDIFF	Cálculo de edad
+CONCAT	full_name
+COALESCE	Teléfono
+WHERE	Filtros
+ORDER BY	Ordenamiento
+GROUP BY	Agrupación
