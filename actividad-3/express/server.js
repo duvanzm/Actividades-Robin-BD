@@ -12,10 +12,10 @@ const mysql = require('mysql2');
 
 
 const db = mysql.createPool({
-    host: process.env.DB_HOST,           // servidor MySQL
-    user: process.env.DB_USER,           // usuario
-    password: process.env.DB_PASSWORD,   // contraseña
-    database: process.env.DB_NAME,       // base de datos
+    host: process.env.DB_HOST,             // servidor MySQL
+    user: process.env.DB_USER,             // usuario
+    password: process.env.DB_PASSWORD,     // contraseña
+    database: process.env.DB_NAME,         // base de datos
     waitForConnections: true,              // si no hay conexiones, esperar
     connectionLimit: 40,                   // máximo de conexiones simultáneas
     queueLimit: 0                          // sin límite de cola
