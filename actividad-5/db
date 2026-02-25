@@ -1,29 +1,69 @@
-Consultas en MongoDB
-Colección: users
+# cConsultas en MongoDB
+- Colección: users
 
-Nivel 1 – Consultas Básicas
+## Nivel 1 – Consultas Básicas
 
 1.Listar todos los documentos de la colección users.
 
+```
+db.users.find({},{document_type:1 , document_number:1, _id:0})
+```
+
 3.Mostrar únicamente los campos first_name, last_name y email.
+
+```
+db.users.find({},{first_name:1 , last_name:1, _id:0, email:1})
+```
 
 4.Obtener todos los usuarios cuyo role sea "admin".
 
+```
+db.users.find({role: "admin"})
+```
+
 5.Buscar los usuarios cuyo country sea "Colombia".
+
+```
+db.users.find({country: "Colombia"})
+```
 
 6.Listar los usuarios que estén activos (is_active = true).
 
+```
+db.users.find({is_active: 1})
+```
+
 7.Buscar los usuarios que no estén verificados (is_verified = false).
+
+```
+db.users.find({is_verified: 0})
+```
 
 8.Obtener los usuarios cuyo gender sea "Masculino".
 
+```
+db.users.find({gender: "Masculino"})
+```
+
 9.Listar los usuarios que vivan en la ciudad "Medellín".
+
+```
+db.users.find({city: "Medellín"})
+```
 
 10.Buscar los usuarios que tengan al menos un hijo (children_count > 0).
 
+```
+db.users.find({children_count:{$gt:0}})
+```
+
 11.Listar los usuarios cuya profesión (profession) no sea null.
 
-Nivel 2 – Filtros con Operadores
+```
+
+```
+
+## Nivel 2 – Filtros con Operadores
 
 12.Buscar usuarios con monthly_income mayor a 3000000.
 
@@ -45,7 +85,7 @@ Nivel 2 – Filtros con Operadores
 
 21.Buscar usuarios que estén inactivos o no verificados.
 
-Nivel 3 – Ordenamiento y Paginación
+## Nivel 3 – Ordenamiento y Paginación
 
 22.Listar usuarios ordenados por monthly_income de mayor a menor.
 
@@ -57,7 +97,7 @@ Nivel 3 – Ordenamiento y Paginación
 
 26.Listar usuarios ordenados por fecha de nacimiento del más joven al mayor.
 
-Nivel 4 – Aggregation Framework
+## Nivel 4 – Aggregation Framework
 
 27.Calcular el ingreso promedio (monthly_income) de todos los usuarios.
 
