@@ -80,7 +80,7 @@ db.users.find({monthly_income: {$gte:2000000, $lte:5000000}})
 14.Buscar usuarios cuya fecha de nacimiento sea posterior al 2000-01-01.
 
 ```
-
+db.users.find({birth_date:{$gt: new Date(2000-01-01)}})
 ```
 
 15.Buscar usuarios cuyo document_type esté en ["CC", "CE"].
@@ -92,48 +92,100 @@ db.users.find({$or:[{document_type: "CC"},{document_type:"CE"}]})
 
 16.Buscar usuarios cuyo city no sea "Bogotá".
 
-
+```
+db.users.find({city:{$ne:"Bogotá"}})
+```
 
 17.Buscar usuarios cuyo nombre empiece por la letra "A".
 
-
+```
+db.users.find({first_name:{ $regex: "^A", $options: "i" }})
+```
 
 18.Buscar usuarios cuyo email termine en "gmail.com".
 
-
+```
+db.users.find({email: { $regex: "gmail\\.com$", $options: "i" }})
+```
 
 19.Buscar usuarios que tengan más de 2 hijos y estén activos.
 
-
+```
+db.users.find({$and: [{ children_count: { $gt: 2 } },{ is_active: 1}]})
+```
 
 20.Buscar usuarios cuyo marital_status sea "Casado" y tengan hijos.
 
-
+```
+db.users.find({marital_status: "Casado",children_count: { $exists: true, $gt: 0 }})
+```
 
 21.Buscar usuarios que estén inactivos o no verificados.
 
-
+```
+db.users.find({$or: [{ is_active: 1},{ is_verified: 1 }]})
+```
 
 ## Nivel 3 – Ordenamiento y Paginación
 
 22.Listar usuarios ordenados por monthly_income de mayor a menor.
 
+```
+db.users.find().sort({ monthly_income: -1 })
+```
+
 23.Obtener los 5 usuarios más recientes según created_at.
+
+```
+db.users.find().sort({ created_at: -1 })
+```
 
 24.Implementar paginación: mostrar la página 2 con 10 registros por página.
 
+```
+
+```
+
 25.Mostrar nombre completo concatenado (first_name + last_name) y ciudad usando agregación.
 
+```
+db.users.aggregate([{$project: {nombreCompleto: { $concat: ["$first_name", " ", "$last_name"] },ciudad: "$city"}}])
+```
+
 26.Listar usuarios ordenados por fecha de nacimiento del más joven al mayor.
+
+```
+db.users.find().sort({ birth_date: 1 })
+```
 
 ## Nivel 4 – Aggregation Framework
 
 27.Calcular el ingreso promedio (monthly_income) de todos los usuarios.
 
+```
+db.users.aggregate([{$group: {_id: null,ingresoPromedio: { $avg: "$monthly_income" }}}])
+```
+
 28.Calcular el ingreso promedio por ciudad.
+
+```
+db.users.aggregate([{$group: {_id: "$city",ingresoPromedio: { $avg: "$monthly_income" }}}])
+```
 
 29.Contar cuántos usuarios hay por cada role.
 
+```
+db.users.aggregate([{$group: {_id: "$role",cantidad: { $sum: 1 }}}])
+```
+
 30.Contar cuántos usuarios están activos vs inactivos.
 
+```
+db.users.aggregate([{$group: {_id: "$is_active",cantidad: { $sum: 1 }}}])
+```
+
 31.Obtener la cantidad total de hijos agrupados por state.
+
+```
+db.users.aggregate([{$group: { _id: "$state",totalHijos: { $sum: "$children_count" }}}])
+```
