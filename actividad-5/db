@@ -60,30 +60,59 @@ db.users.find({children_count:{$gt:0}})
 11.Listar los usuarios cuya profesión (profession) no sea null.
 
 ```
-
+db.users.find({profession: null})
 ```
 
 ## Nivel 2 – Filtros con Operadores
 
 12.Buscar usuarios con monthly_income mayor a 3000000.
 
+```
+db.users.find({monthly_income: {$gt:3000000}})
+```
+
 13.Buscar usuarios con ingresos entre 2000000 y 5000000.
+
+```
+db.users.find({monthly_income: {$gte:2000000, $lte:5000000}})
+```
 
 14.Buscar usuarios cuya fecha de nacimiento sea posterior al 2000-01-01.
 
+```
+
+```
+
 15.Buscar usuarios cuyo document_type esté en ["CC", "CE"].
+
+```
+db.users.find({$or:[{document_type: "CC"},{document_type:"CE"}]})
+
+```
 
 16.Buscar usuarios cuyo city no sea "Bogotá".
 
+
+
 17.Buscar usuarios cuyo nombre empiece por la letra "A".
+
+
 
 18.Buscar usuarios cuyo email termine en "gmail.com".
 
+
+
 19.Buscar usuarios que tengan más de 2 hijos y estén activos.
+
+
 
 20.Buscar usuarios cuyo marital_status sea "Casado" y tengan hijos.
 
+
+
 21.Buscar usuarios que estén inactivos o no verificados.
+
+
 
 ## Nivel 3 – Ordenamiento y Paginación
 
