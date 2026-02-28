@@ -110,8 +110,694 @@ app.get(`/${urllev}1/${urlEjer}5`, (req, res) => {
   });
 }); 
 
+// 6. Contar pedidos por estado.
+app.get(`/${urllev}1/${urlEjer}6`, (req, res) => {
+    const query = "SELECT status, COUNT(*) AS total FROM orders GROUP BY status";
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 7. Productos de Electrónica ordenados por precio (descendente).
+app.get(`/${urllev}1/${urlEjer}7`, (req, res) => {
+    const query = "SELECT p.name, p.price FROM products p INNER JOIN categories c ON p.category_id = c.id WHERE c.name = 'Electrónica' ORDER BY p.price DESC";
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 8. Productos y cantidades de una orden específica.
+app.get(`/${urllev}1/${urlEjer}8`, (req, res) => {
+    const orderId = req.query.order_id || '1'; // puedes pasar el ID por query string
+    const query = "SELECT oi.product_id, oi.quantity FROM order_items oi WHERE oi.order_id = ?";
+    db.query(query, [orderId], (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 9. Usuarios de una ciudad con al menos un pedido.
+app.get(`/${urllev}1/${urlEjer}9`, (req, res) => {
+    const city = req.query.city || 'Monterrey';
+    const query = "SELECT DISTINCT u.name FROM users u INNER JOIN orders o ON u.id = o.user_id WHERE u.city = ?";
+    db.query(query, [city], (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 10. Valor promedio de pedidos por usuario.
+app.get(`/${urllev}1/${urlEjer}10`, (req, res) => {
+    const query = "SELECT u.name, AVG(o.total_amount) AS promedio_gasto FROM users u INNER JOIN orders o ON u.id = o.user_id GROUP BY u.id";
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 11. Recibo detallado (orden, fecha, producto, precio).
+app.get(`/${urllev}2/${urlEjer}11`, (req, res) => {
+    const query = `
+        SELECT o.order_number, o.created_at, p.name AS product_name, oi.price AS selling_price
+        FROM orders o
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products p ON oi.product_id = p.id
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 12. Ingreso total por categoría.
+app.get(`/${urllev}2/${urlEjer}12`, (req, res) => {
+    const query = `
+        SELECT c.name AS category_name, SUM(oi.price * oi.quantity) AS total_income
+        FROM categories c
+        INNER JOIN products p ON c.id = p.category_id
+        INNER JOIN order_items oi ON p.id = oi.product_id
+        GROUP BY c.id
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 13. Productos únicos comprados por un cliente (por nombre).
+app.get(`/${urllev}2/${urlEjer}13`, (req, res) => {
+    const name = req.query.name || 'Juan';
+    const query = `
+        SELECT DISTINCT p.name AS product_name
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products p ON oi.product_id = p.id
+        WHERE u.name = ?
+    `;
+    db.query(query, [name], (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 14. 5 productos más vendidos (por cantidad total).
+app.get(`/${urllev}2/${urlEjer}14`, (req, res) => {
+    const query = `
+        SELECT p.name, SUM(oi.quantity) AS total_sold
+        FROM products p
+        INNER JOIN order_items oi ON p.id = oi.product_id
+        GROUP BY p.id
+        ORDER BY total_sold DESC
+        LIMIT 5
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 15. Última fecha de venta por producto.
+app.get(`/${urllev}2/${urlEjer}15`, (req, res) => {
+    const query = `
+        SELECT p.name AS product_name, MAX(o.created_at) AS last_sold_date
+        FROM products p
+        INNER JOIN order_items oi ON p.id = oi.product_id
+        INNER JOIN orders o ON oi.order_id = o.id
+        GROUP BY p.id
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 16. Usuarios que compraron productos con "Gamer" en el nombre.
+app.get(`/${urllev}2/${urlEjer}16`, (req, res) => {
+    const query = `
+        SELECT DISTINCT u.name
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products p ON oi.product_id = p.id
+        WHERE p.name LIKE '%Gamer%'
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 17. Ingresos totales agrupados por día.
+app.get(`/${urllev}2/${urlEjer}17`, (req, res) => {
+    const query = `
+        SELECT DATE(o.created_at) AS sale_date, SUM(o.total_amount) AS daily_income
+        FROM orders o
+        GROUP BY DATE(o.created_at)
+        ORDER BY sale_date DESC
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 18. Categorías con productos pero sin ventas.
+app.get(`/${urllev}2/${urlEjer}18`, (req, res) => {
+    const query = `
+        SELECT c.name AS category_name
+        FROM categories c
+        INNER JOIN products p ON c.id = p.category_id
+        LEFT JOIN order_items oi ON p.id = oi.product_id
+        WHERE oi.product_id IS NULL
+        GROUP BY c.id
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 19. Ticket promedio por usuario.
+app.get(`/${urllev}2/${urlEjer}19`, (req, res) => {
+    const query = `
+        SELECT u.name, AVG(o.total_amount) AS avg_ticket
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        GROUP BY u.id
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 20. Productos de órdenes canceladas.
+app.get(`/${urllev}2/${urlEjer}20`, (req, res) => {
+    const query = `
+        SELECT DISTINCT p.name
+        FROM products p
+        INNER JOIN order_items oi ON p.id = oi.product_id
+        INNER JOIN orders o ON oi.order_id = o.id
+        WHERE o.status = 'cancelled'
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 21. Reporte Global (usuario, ciudad, orden, producto, categoría, cantidad, subtotal)
+app.get(`/${urllev}3/${urlEjer}21`, (req, res) => {
+    const query = `
+        SELECT 
+            u.name AS user_name,
+            u.city,
+            o.order_number,
+            p.name AS product_name,
+            c.name AS category_name,
+            oi.quantity,
+            (oi.price * oi.quantity) AS subtotal
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products p ON oi.product_id = p.id
+        INNER JOIN categories c ON p.category_id = c.id
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 22. Ingresos de categoría "Ropa" en una ciudad específica.
+app.get(`/${urllev}3/${urlEjer}22`, (req, res) => {
+    const city = req.query.city || 'Monterrey';
+    const query = `
+        SELECT SUM(oi.price * oi.quantity) AS total_income
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products p ON oi.product_id = p.id
+        INNER JOIN categories c ON p.category_id = c.id
+        WHERE c.name = 'Ropa' AND u.city = ?
+    `;
+    db.query(query, [city], (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 23. Cliente del Año (más dinero gastado).
+app.get(`/${urllev}3/${urlEjer}23`, (req, res) => {
+    const query = `
+        SELECT u.name, SUM(o.total_amount) AS total_spent
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        GROUP BY u.id
+        ORDER BY total_spent DESC
+        LIMIT 1
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 24. Productos sin ventas.
+app.get(`/${urllev}3/${urlEjer}24`, (req, res) => {
+    const query = `
+        SELECT p.name
+        FROM products p
+        LEFT JOIN order_items oi ON p.id = oi.product_id
+        WHERE oi.product_id IS NULL
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+// 25. Ganancia Real (venta - costo) por producto en cada orden.
+app.get(`/${urllev}3/${urlEjer}25`, (req, res) => {
+    const query = `
+        SELECT 
+            p.name AS product_name,
+            oi.price AS selling_price,
+            p.cost AS purchase_cost,
+            (oi.price - p.cost) AS profit_per_unit,
+            (oi.price - p.cost) * oi.quantity AS total_profit
+        FROM order_items oi
+        INNER JOIN products p ON oi.product_id = p.id
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 26. Usuarios que compraron Videojuegos pero no Hogar.
+app.get(`/${urllev}3/${urlEjer}26`, (req, res) => {
+    const query = `
+        SELECT DISTINCT u.name
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products p ON oi.product_id = p.id
+        INNER JOIN categories c ON p.category_id = c.id
+        WHERE c.name = 'Videojuegos'
+        AND u.id NOT IN (
+            SELECT DISTINCT u2.id
+            FROM users u2
+            INNER JOIN orders o2 ON u2.id = o2.user_id
+            INNER JOIN order_items oi2 ON o2.id = oi2.order_id
+            INNER JOIN products p2 ON oi2.product_id = p2.id
+            INNER JOIN categories c2 ON p2.category_id = c2.id
+            WHERE c2.name = 'Hogar'
+        )
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 27. Ranking de las 3 ciudades con más ingresos.
+app.get(`/${urllev}3/${urlEjer}27`, (req, res) => {
+    const query = `
+        SELECT u.city, SUM(o.total_amount) AS total_income
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        GROUP BY u.city
+        ORDER BY total_income DESC
+        LIMIT 3
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 28. Orden con más variedad de productos distintos.
+app.get(`/${urllev}3/${urlEjer}28`, (req, res) => {
+    const query = `
+        SELECT o.order_number, COUNT(DISTINCT oi.product_id) AS unique_products
+        FROM orders o
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        GROUP BY o.id
+        ORDER BY unique_products DESC
+        LIMIT 1
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 29. Productos vendidos en el pasado a menor precio que su precio actual.
+app.get(`/${urllev}3/${urlEjer}29`, (req, res) => {
+    const query = `
+        SELECT DISTINCT p.name, p.price AS current_price, oi.price AS sold_price
+        FROM products p
+        INNER JOIN order_items oi ON p.id = oi.product_id
+        WHERE oi.price < p.price
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 30. Historial de compras de un producto específico.
+app.get(`/${urllev}3/${urlEjer}30`, (req, res) => {
+    const productId = req.query.product_id || '1';
+    const query = `
+        SELECT 
+            u.name AS buyer_name,
+            o.created_at AS purchase_date,
+            oi.price AS purchase_price
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        WHERE oi.product_id = ?
+    `;
+    db.query(query, [productId], (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 31. Usuarios con gasto superior al promedio.
+app.get(`/${urllev}4/${urlEjer}31`, (req, res) => {
+    const query = `
+        SELECT u.name, SUM(o.total_amount) AS total_spent
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        GROUP BY u.id
+        HAVING total_spent > (
+            SELECT AVG(total_spent)
+            FROM (
+                SELECT SUM(o2.total_amount) AS total_spent
+                FROM users u2
+                INNER JOIN orders o2 ON u2.id = o2.user_id
+                GROUP BY u2.id
+            ) AS avg_table
+        )
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 32. Productos Estrella (>2% del total de ingresos).
+app.get(`/${urllev}4/${urlEjer}32`, (req, res) => {
+    const query = `
+        SELECT 
+            p.name,
+            SUM(oi.price * oi.quantity) AS product_income,
+            (SUM(oi.price * oi.quantity) / (SELECT SUM(oi2.price * oi2.quantity) FROM order_items oi2)) * 100 AS percentage_of_total
+        FROM products p
+        INNER JOIN order_items oi ON p.id = oi.product_id
+        GROUP BY p.id
+        HAVING percentage_of_total > 2
+        ORDER BY percentage_of_total DESC
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 33. Churn Rate: usuarios que no compran en los últimos 6 meses.
+app.get(`/${urllev}4/${urlEjer}33`, (req, res) => {
+    const query = `
+        SELECT u.name, MAX(o.created_at) AS last_purchase
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        GROUP BY u.id
+        HAVING last_purchase < DATE_SUB(NOW(), INTERVAL 6 MONTH)
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 34. Clasificación de clientes por gasto.
+app.get(`/${urllev}4/${urlEjer}34`, (req, res) => {
+    const query = `
+        SELECT 
+            u.name,
+            SUM(o.total_amount) AS total_spent,
+            CASE
+                WHEN SUM(o.total_amount) > 5000 THEN 'VIP'
+                WHEN SUM(o.total_amount) BETWEEN 1000 AND 5000 THEN 'Frecuente'
+                ELSE 'Regular'
+            END AS customer_level
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        GROUP BY u.id
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+// 35. Mes y año con mayor facturación.
+app.get(`/${urllev}4/${urlEjer}35`, (req, res) => {
+    const query = `
+        SELECT 
+            YEAR(o.created_at) AS year,
+            MONTH(o.created_at) AS month,
+            SUM(o.total_amount) AS total_income
+        FROM orders o
+        GROUP BY YEAR(o.created_at), MONTH(o.created_at)
+        ORDER BY total_income DESC
+        LIMIT 1
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 36. Alerta de Inventario: órdenes pendientes con productos con stock < 5.
+app.get(`/${urllev}4/${urlEjer}36`, (req, res) => {
+    const query = `
+        SELECT 
+            o.order_number,
+            p.name AS product_name,
+            p.stock AS current_stock
+        FROM orders o
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products p ON oi.product_id = p.id
+        WHERE o.status = 'pending' AND p.stock < 5
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 37. Porcentaje de ventas por categoría.
+app.get(`/${urllev}4/${urlEjer}37`, (req, res) => {
+    const query = `
+        SELECT 
+            c.name AS category_name,
+            SUM(oi.price * oi.quantity) AS category_income,
+            (SUM(oi.price * oi.quantity) / (SELECT SUM(oi2.price * oi2.quantity) FROM order_items oi2)) * 100 AS percentage_of_total
+        FROM categories c
+        INNER JOIN products p ON c.id = p.category_id
+        INNER JOIN order_items oi ON p.id = oi.product_id
+        GROUP BY c.id
+        ORDER BY percentage_of_total DESC
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 38. Ventas por ciudad vs promedio de todas las ciudades.
+app.get(`/${urllev}4/${urlEjer}38`, (req, res) => {
+    const query = `
+        SELECT 
+            u.city,
+            SUM(o.total_amount) AS city_income,
+            (SELECT AVG(city_total) FROM (
+                SELECT SUM(o2.total_amount) AS city_total
+                FROM users u2
+                INNER JOIN orders o2 ON u2.id = o2.user_id
+                GROUP BY u2.city
+            ) AS avg_table) AS avg_income_all_cities,
+            (SUM(o.total_amount) - (
+                SELECT AVG(city_total) FROM (
+                    SELECT SUM(o2.total_amount) AS city_total
+                    FROM users u2
+                    INNER JOIN orders o2 ON u2.id = o2.user_id
+                    GROUP BY u2.city
+                ) AS avg_table
+            )) AS difference_from_avg
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        GROUP BY u.city
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 39. Tasa de cancelación por mes.
+app.get(`/${urllev}4/${urlEjer}39`, (req, res) => {
+    const query = `
+        SELECT 
+            YEAR(o.created_at) AS year,
+            MONTH(o.created_at) AS month,
+            COUNT(*) AS total_orders,
+            COUNT(CASE WHEN o.status = 'cancelled' THEN 1 END) AS cancelled_orders,
+            (COUNT(CASE WHEN o.status = 'cancelled' THEN 1 END) * 100.0 / COUNT(*)) AS cancellation_rate
+        FROM orders o
+        GROUP BY YEAR(o.created_at), MONTH(o.created_at)
+        ORDER BY year DESC, month DESC
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// 40. Análisis de Canasta: pares de productos que se venden juntos con más frecuencia.
+app.get(`/${urllev}4/${urlEjer}40`, (req, res) => {
+    const query = `
+        SELECT 
+            p1.name AS product1,
+            p2.name AS product2,
+            COUNT(*) AS times_sold_together
+        FROM order_items oi1
+        INNER JOIN order_items oi2 ON oi1.order_id = oi2.order_id AND oi1.product_id < oi2.product_id
+        INNER JOIN products p1 ON oi1.product_id = p1.id
+        INNER JOIN products p2 ON oi2.product_id = p2.id
+        GROUP BY p1.id, p2.id
+        ORDER BY times_sold_together DESC
+        LIMIT 5
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar la consulta:', err);
+            return res.status(500).send('Error en el servidor');
+        }
+        res.json(results);
+    });
+});
+
+// Puerto
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, ()=>{
-    console.log(`corriendo en el puerto: http://localhost:${PORT}/`)
-})
+app.listen(PORT, () => {
+    console.log(`Corriendo en el puerto: http://localhost:${PORT}/`);
+});
